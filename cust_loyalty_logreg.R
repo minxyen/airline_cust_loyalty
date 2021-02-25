@@ -28,6 +28,20 @@ dummy_whole_data <- dummy.data.frame(whole_data,
 
 head(dummy_whole_data)
 
+# EDA
+# find out the correlation between all variables - heatmap
+library(reshape2)
+head(melt(cor(dummy_whole_data[,2:ncol(dummy_whole_data)])))
+ggplot(melt(cor(dummy_whole_data[,2:ncol(dummy_whole_data)])),
+       aes(x = Var1, y = Var2)) +
+  geom_tile(aes(fill = value), color = 'white') +
+  scale_fill_gradient2(low = 'firebrick4',
+                      high = 'steelblue',
+                      mid = 'white', midpoint = 0) +
+  guides(fill = guide_legend(title = "Correlation")) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.title = element_blank())
 
 
 
