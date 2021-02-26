@@ -44,7 +44,7 @@ ggplot(melt(cor(dummy_whole_data[,2:ncol(dummy_whole_data)])),
         axis.title = element_blank())
 
 # ------- Logistic Regression Model Building ...
-# ------- Marketing Factor, Internal Data
+# ------- Marketing Factors
 
 mrkt_model <- glm(is_loyal ~ dm_message + dm_post + dm_email +              
       credit_card_vendor + credit_card_bonus + 
@@ -81,4 +81,36 @@ roc_curve + style_roc() +
   annotate("text", x = 0.75, y = 0.25, size = 5, 
            label = paste("AUC=", round(calc_auc(roc_curve)$AUC, 3)))
 
+# ------- Logistic Regression Model Building ...
+# ------- Service Satisfaction Factors
+
+service_model <- glm(is_loyal ~
+                       depart_on_time + arrive_on_time +
+                       register_method + register_rate +
+                       class + seat_rate + meal_rate +
+                       flight_rate + package_rate,
+                     data = whole_data, family=binomial(link="logit"))
+summary(service_model)
+
+# positive influence (α=0.05) variables：
+# - depart_on_time, arrive_on_time, seat_rate, meal_rate, flight_rate, package_rate
+# negative influence (α=0.05) variables：
+# - None
+
+predict_prob <- predict(service_model, whole_data, type="response")
+# Calculate cut-off probability which minimized mis-classification error
+opt_cutoff <- optimalCutoff(whole_data$is_loyal, predict_prob)[1] 
+# mis-classification error (%)
+misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+
+
+prediction_table <- data.frame(true_label = whole_data$is_loyal,
+                            predict_prob = predict_prob)
+
+# Plot ROC curve and calculate AUC
+roc_curve <- ggplot(prediction_table, aes(d = true_label, m = predict_prob)) +
+  geom_roc(n.cuts = 3, labelsize = 3, labelround = 2)
+roc_curve + style_roc() +
+  annotate("text", x = 0.75, y = 0.25, size = 5,
+           label = paste("AUC=", round(calc_auc(roc_curve)$AUC, 3)))
 
