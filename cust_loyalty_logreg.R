@@ -71,9 +71,9 @@ misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 
 # ROC curve + AUC value
 library("plotROC")
-prediction_table <- data.frame(true_label = whole_data$is_loyal,
+predict_table <- data.frame(true_label = whole_data$is_loyal,
                             predict_prob = predict_prob)
-roc_curve <- ggplot(prediction_table,
+roc_curve <- ggplot(predict_table,
        aes(d = true_label, m = predict_prob)) + geom_roc() + 
   geom_roc() 
 
@@ -113,4 +113,34 @@ roc_curve <- ggplot(prediction_table, aes(d = true_label, m = predict_prob)) +
 roc_curve + style_roc() +
   annotate("text", x = 0.75, y = 0.25, size = 5,
            label = paste("AUC=", round(calc_auc(roc_curve)$AUC, 3)))
+
+
+# ------- Logistic Regression Model Building ...
+# ------- Both Marketing + Service Satisfaction Factors
+
+full_model <- glm(is_loyal ~ depart_on_time + arrive_on_time +
+                    register_method + register_rate +
+                    class + seat_rate + meal_rate +
+                    flight_rate + package_rate +
+                    dm_message + dm_post + dm_email +
+                    credit_card_vendor + credit_card_bonus +
+                    tv_ad + youtube_ad_1 + youtube_ad_2 + youtube_ad_3,
+                  data = whole_data,
+                  family = binomial(link="logit"))
+
+summary(full_model)
+
+predict_prob <- predict(full_model, whole_data, type="response")
+opt_cutoff <- optimalCutoff(whole_data$is_loyal, predict_prob)[1] 
+misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+
+
+predict_table <- data.frame(true_label = whole_data$is_loyal,
+                            predict_prob = predict_prob)
+
+rov_plot <- ggplot(predict_table, aes(d = true_label, m = predict_prob)) +
+  geom_roc(n.cuts = 3, labelsize = 3, labelround = 2)
+rov_plot + style_roc() +
+  annotate("text", x = 0.75, y = 0.25, size = 5,
+           label = paste("AUC=", round(calc_auc(rov_plot)$AUC, 3)))
 
