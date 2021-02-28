@@ -144,3 +144,31 @@ rov_plot + style_roc() +
   annotate("text", x = 0.75, y = 0.25, size = 5,
            label = paste("AUC=", round(calc_auc(rov_plot)$AUC, 3)))
 
+# Data Visualization - overall model
+# Create a Variable-Coefficient Table
+full_model_summary <- data.frame(variable_name = names(coefficients(full_model)),
+           coefficient = coefficients(full_model))
+
+# Filter out marketing variables
+rownames(full_model_summary) <-NULL
+full_model_summary <- full_model_summary %>%
+  filter(variable_name %in% names(coefficients(mrkt_model)) & 
+           variable_name != "(Intercept)")
+
+# sort by coefficient and set variable type(factor)
+full_model_summary <- full_model_summary[sort(full_model_summary$coefficient, index.return=T)$ix,]
+full_model_summary$variable_name <- factor(full_model_summary$variable_name, levels = full_model_summary$variable_name)
+
+ggplot(full_model_summary,
+       aes(x=variable_name, y=coefficient)) +
+  geom_bar(aes(fill=variable_name),
+           stat = "identity",
+           show.legend = FALSE,
+           position = "dodge") +
+  theme_bw() +
+  labs(title = "Direct marketing approaching isn't useful.",
+       x = "Marketing Strategy",
+       y = "Coefficient") +
+  coord_flip()
+
+
