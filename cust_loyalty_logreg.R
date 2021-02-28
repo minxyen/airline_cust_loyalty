@@ -168,7 +168,36 @@ ggplot(full_model_summary,
   theme_bw() +
   labs(title = "Direct marketing approaching isn't useful.",
        x = "Marketing Strategy",
-       y = "Coefficient") +
+       y = "Impact on Customer Loyalty'") +
   coord_flip()
+
+# Data Visualization - mrkt model
+#  -> for 2 reasons: 1. the results are similar to the overall model.
+#  -> 2. some variables may not be statistically important in  the overall model, 
+#        but they have positive influence and they seem to still be important.
+# Create a Variable-Coefficient Table
+
+mrkt_model_summary <- data.frame(variable_name = names(coefficients(mrkt_model)),
+                                  coefficient = coefficients(mrkt_model))
+rownames(mrkt_model_summary) <- NULL
+
+mrkt_model_summary <- mrkt_model_summary %>%
+  filter(variable_name != "(Intercept)")
+
+mrkt_model_summary <- mrkt_model_summary[sort(mrkt_model_summary$coefficient, index.return = T)$ix,]
+
+mrkt_model_summary$variable_name <- factor(mrkt_model_summary$variable_name,
+       levels = mrkt_model_summary$variable_name)
+
+ggplot(mrkt_model_summary,
+       aes(x=variable_name, y=coefficient)) +
+  geom_bar(aes(fill=variable_name),
+           stat = "identity") +
+  theme_bw() +
+  labs(x = "Marketing Strategy", y = 'Impact on Customer Loyalty') +
+  coord_flip()
+
+
+
 
 
