@@ -234,7 +234,43 @@ ggplot(dm_summary,
   labs(x = "Direct Marketing",
        y = "Proportion of Loyal Members")
 
-# 40:36
+# Charts for BD(Business Development) Manager
+# Partnership - credit card vendors 
+
+creditcard_summary <- whole_data %>%
+  group_by(credit_card_vendor) %>%
+  summarize(num_of_members = length(user_id),
+            num_of_loyal = sum(is_loyal))
+
+creditcard_summary$loyal_proportion <- creditcard_summary$num_of_loyal / creditcard_summary$num_of_members
+creditcard_summary
+
+ggplot(creditcard_summary, 
+       aes(x = credit_card_vendor, 
+           y = loyal_proportion)) +
+  geom_bar(aes(fill=credit_card_vendor), stat = "identity") +
+  labs(x = "Credit Card Vendor",
+       y = "Proportion of Loyal Members")
+
+# credit card bonus -> bonus level is more important. Which vendor does not matter.
+vendor_bonus_summary <- whole_data %>%
+  group_by(credit_card_vendor, credit_card_bonus) %>%
+  summarise(num_of_member = length(user_id),
+            num_of_loyal = sum(is_loyal))
+
+vendor_bonus_summary$loyal_proportion <- vendor_bonus_summary$num_of_loyal / vendor_bonus_summary$num_of_member
+vendor_bonus_summary
+
+ggplot(vendor_bonus_summary,
+       aes( x = credit_card_vendor,
+            y = loyal_proportion)) + 
+  geom_bar(aes(fill = credit_card_bonus), 
+           position = "dodge",
+           stat = "identity") +
+  theme_bw() +
+  labs(x = "Credit Card Vendor",
+       y = "Proportion of Loyal Members")
+
 
 
 
