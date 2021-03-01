@@ -198,6 +198,50 @@ ggplot(mrkt_model_summary,
   coord_flip()
 
 
+# Charts for Marketing Manager
+# Direct Marketing Method - message, email, post
+
+dm_method <- c("dm_post", "dm_email", "dm_message")
+dm_summary <- whole_data %>%
+  group_by_(treatment = dm_method[1]) %>%
+  summarise(num_of_members = length(user_id),
+            num_of_loyal = sum(is_loyal))
+
+dm_summary$method <- dm_method[1]
+dm_summary
+
+for(i in 2:3){
+  temp <- whole_data %>%
+    group_by_(treatment = dm_method[i]) %>%
+    summarise(num_of_members = length(user_id),
+              num_of_loyal = sum(is_loyal))
+  
+  temp$method <- dm_method[i]
+  dm_summary <- rbind(dm_summary, temp)
+}
+dm_summary$loyal_proportion <- dm_summary$num_of_loyal / dm_summary$num_of_members
+dm_summary$treatment <- as.factor(dm_summary$treatment)
+dm_summary$method <- as.factor(dm_summary$method)
+dm_summary
+
+ggplot(dm_summary,
+       aes(x = method,
+           y = loyal_proportion)) +
+  geom_bar(aes(fill = treatment),
+           position = "dodge",
+           stat = "identity") +
+  theme_bw() +
+  labs(x = "Direct Marketing",
+       y = "Proportion of Loyal Members")
+
+# 40:36
+
+
+
+
+
+
+
 
 
 
