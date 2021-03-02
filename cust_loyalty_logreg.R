@@ -272,12 +272,37 @@ ggplot(vendor_bonus_summary,
        y = "Proportion of Loyal Members")
 
 
+# Charts for Brand Manager -> brand image.
+# tv_ad, youtuve_ad_1,2,3
+
+ad_channel_list <- c("tv_ad", "youtube_ad_1", "youtube_ad_2", "youtube_ad_3")
+ad_channel_summary <- whole_data %>%
+  group_by_(treatment = ad_channel[1]) %>%
+  summarise(num_of_member = length(user_id),
+            num_of_loyal = sum(is_loyal))
+
+ad_channel_summary$ad_channel <- ad_channel_list[1]
+ad_channel_summary
+
+for(i in 2:4){
+  temp <- whole_data %>%
+    group_by_(treatment = ad_channel_list[i]) %>%
+    summarize(num_of_member = length(user_id), 
+              num_of_loyal = sum(is_loyal))
+  temp$ad_channel <- ad_channel_list[i] 
+  ad_channel_summary <- rbind(ad_channel_summary, temp)
+}
+ad_channel_summary
+ad_channel_summary$loyalty_proportion <- ad_channel_summary$num_of_loyal / ad_channel_summary$num_of_member
 
 
+ad_channel_summary$treatment <- as.factor(ad_channel_summary$treatment)
+ad_channel_summary$ad_channel <- as.factor(ad_channel_summary$ad_channel)
 
-
-
-
-
-
-
+ggplot(ad_channel_summary,
+       aes(x = ad_channel,, y = loyalty_proportion)) +
+  geom_bar(aes(fill=treatment),
+           position = "dodge",
+           stat = "identity") +
+  theme_bw() +
+  labs(x = 'Ad', y = "Proportion of Loyal Members")
