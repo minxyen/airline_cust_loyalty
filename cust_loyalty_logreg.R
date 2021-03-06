@@ -1,18 +1,12 @@
 library(tidyverse)
 
-# load both internal/survey data
 internal.data <- read_csv("./data_folder/internal_data.csv")
 survey.data <- read_csv("./data_folder/survey_data.csv")
-
-head(internal.data)
-head(survey.data)
-
 whole_data <- merge(internal.data, survey.data, by = "user_id")
 head(whole_data)
 
-# check data type
+
 str(whole_data)
-# change to correct data type
 whole_data$user_id <- as.character(whole_data $user_id)
 whole_data$credit_card_vendor <- as.factor(whole_data$credit_card_vendor)
 whole_data$credit_card_bonus <- as.factor(whole_data$credit_card_bonus)
@@ -28,8 +22,7 @@ dummy_whole_data <- dummy.data.frame(whole_data,
 
 head(dummy_whole_data)
 
-# EDA
-# find out the correlation between all variables - heatmap
+# heatmap
 library(reshape2)
 head(melt(cor(dummy_whole_data[,2:ncol(dummy_whole_data)])))
 ggplot(melt(cor(dummy_whole_data[,2:ncol(dummy_whole_data)])),
@@ -44,7 +37,7 @@ ggplot(melt(cor(dummy_whole_data[,2:ncol(dummy_whole_data)])),
         axis.title = element_blank())
 
 # ------- Logistic Regression Model Building ...
-# ------- Marketing Factors
+# ------- 1) Marketing Factors
 
 mrkt_model <- glm(is_loyal ~ dm_message + dm_post + dm_email +              
       credit_card_vendor + credit_card_bonus + 
@@ -59,17 +52,21 @@ summary(mrkt_model)
 # - dm_message, youtube_ad_1
 
 predict_prob <- predict(mrkt_model, whole_data, type = "response")
+
 library("InformationValue")
-# Calculate cut-off probability which minimized mis-classification error
 opt_cutoff <- optimalCutoff(whole_data$is_loyal, predict_prob)[1]
-# create confusion matrix
+
 confusionMatrix(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 
-# mis-classification error (%)
 misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
-# 0.219 -> quite high
 
-# ROC curve + AUC value
+precision(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+
+sensitivity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+
+specificity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+
+# ROC, AUC
 library("plotROC")
 predict_table <- data.frame(true_label = whole_data$is_loyal,
                             predict_prob = predict_prob)
