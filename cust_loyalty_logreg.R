@@ -57,13 +57,9 @@ library("InformationValue")
 opt_cutoff <- optimalCutoff(whole_data$is_loyal, predict_prob)[1]
 
 confusionMatrix(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
-
 misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
-
 precision(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
-
 sensitivity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
-
 specificity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 
 # ROC, AUC
@@ -95,16 +91,19 @@ summary(service_model)
 # - None
 
 predict_prob <- predict(service_model, whole_data, type="response")
-# Calculate cut-off probability which minimized mis-classification error
+
 opt_cutoff <- optimalCutoff(whole_data$is_loyal, predict_prob)[1] 
-# mis-classification error (%)
+
+confusionMatrix(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+precision(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+sensitivity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+specificity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 
 
 prediction_table <- data.frame(true_label = whole_data$is_loyal,
                             predict_prob = predict_prob)
 
-# Plot ROC curve and calculate AUC
 roc_curve <- ggplot(prediction_table, aes(d = true_label, m = predict_prob)) +
   geom_roc(n.cuts = 3, labelsize = 3, labelround = 2)
 roc_curve + style_roc() +
@@ -127,9 +126,16 @@ full_model <- glm(is_loyal ~ depart_on_time + arrive_on_time +
 
 summary(full_model)
 
+
 predict_prob <- predict(full_model, whole_data, type="response")
+
 opt_cutoff <- optimalCutoff(whole_data$is_loyal, predict_prob)[1] 
+
+confusionMatrix(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 misClassError(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+precision(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+sensitivity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
+specificity(whole_data$is_loyal, predict_prob, threshold = opt_cutoff)
 
 
 predict_table <- data.frame(true_label = whole_data$is_loyal,
@@ -173,7 +179,6 @@ ggplot(full_model_summary,
 #  -> 2. some variables may not be statistically important in  the overall model, 
 #        but they have positive influence and they seem to still be important.
 # Create a Variable-Coefficient Table
-
 mrkt_model_summary <- data.frame(variable_name = names(coefficients(mrkt_model)),
                                   coefficient = coefficients(mrkt_model))
 rownames(mrkt_model_summary) <- NULL
@@ -182,14 +187,15 @@ mrkt_model_summary <- mrkt_model_summary %>%
   filter(variable_name != "(Intercept)")
 
 mrkt_model_summary <- mrkt_model_summary[sort(mrkt_model_summary$coefficient, index.return = T)$ix,]
-
 mrkt_model_summary$variable_name <- factor(mrkt_model_summary$variable_name,
        levels = mrkt_model_summary$variable_name)
 
 ggplot(mrkt_model_summary,
        aes(x=variable_name, y=coefficient)) +
   geom_bar(aes(fill=variable_name),
-           stat = "identity") +
+           stat = "identity",
+           show.legend = FALSE,
+           position = "dodge") +
   theme_bw() +
   labs(x = "Marketing Strategy", y = 'Impact on Customer Loyalty') +
   coord_flip()
@@ -233,7 +239,6 @@ ggplot(dm_summary,
 
 # Charts for BD(Business Development) Manager
 # Partnership - credit card vendors 
-
 creditcard_summary <- whole_data %>%
   group_by(credit_card_vendor) %>%
   summarize(num_of_members = length(user_id),
@@ -271,10 +276,9 @@ ggplot(vendor_bonus_summary,
 
 # Charts for Brand Manager -> brand image.
 # tv_ad, youtuve_ad_1,2,3
-
 ad_channel_list <- c("tv_ad", "youtube_ad_1", "youtube_ad_2", "youtube_ad_3")
 ad_channel_summary <- whole_data %>%
-  group_by_(treatment = ad_channel[1]) %>%
+  group_by_(treatment = ad_channel_list[1]) %>%
   summarise(num_of_member = length(user_id),
             num_of_loyal = sum(is_loyal))
 
@@ -291,7 +295,6 @@ for(i in 2:4){
 }
 ad_channel_summary
 ad_channel_summary$loyalty_proportion <- ad_channel_summary$num_of_loyal / ad_channel_summary$num_of_member
-
 
 ad_channel_summary$treatment <- as.factor(ad_channel_summary$treatment)
 ad_channel_summary$ad_channel <- as.factor(ad_channel_summary$ad_channel)
